@@ -522,7 +522,7 @@
    */
   function _getPropValue (element, propName) {
     var propValue = '';
-    if (element.currentStyle) { //IE
+    if (element.currentStyle && element.currentStyle[propName]) { //IE (also: prevent Opera from using currentStyle)
       propValue = element.currentStyle[propName];
     } else if (document.defaultView && document.defaultView.getComputedStyle) { //Others
       propValue = document.defaultView.getComputedStyle(element, null).getPropertyValue(propName);
