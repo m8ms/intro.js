@@ -67,22 +67,35 @@
       }
 
     } else {
-      //use steps from data-* annotations
+      //use steps from the list #tourContent 
 
-      var allIntroSteps = targetElm.querySelectorAll('*[data-intro]');
+      var allIntroSteps = targetElm.querySelectorAll('#tourContent > li');
       //if there's no element to intro
       if (allIntroSteps.length < 1) {
         return false;
       }
 
+      var cont = 1;
       for (var i = 0, elmsLength = allIntroSteps.length; i < elmsLength; i++) {
         var currentElement = allIntroSteps[i];
+
+        var currentId = currentElement.getAttribute("data-id");
+        var currentClass = currentElement.getAttribute("data-class");
+
+        if(currentId && currentId!= 'undefined'){
+            var currentDiv = document.getElementById(currentId);
+        }else{
+            var currentDiv = $('.'+currentClass).get(0);  // WARNING use of jQuery
+        }
+
+
         introItems.push({
-          element: currentElement,
-          intro: currentElement.getAttribute('data-intro'),
-          step: parseInt(currentElement.getAttribute('data-step'), 10),
-          position: currentElement.getAttribute('data-position') || this._options.tooltipPosition
+          element: currentDiv,
+          intro: currentElement.innerHTML,
+          step: cont,
+          position: currentElement.getAttribute("data-position")
         });
+        cont++;
       }
     }
 
@@ -106,10 +119,6 @@
         if (e.keyCode === 27 && self._options.exitOnEsc == true) {
           //escape key pressed, exit the intro
           _exitIntro.call(self, targetElm);
-          //check if any callback is defined
-          if (self._introExitCallback != undefined) {
-            self._introExitCallback.call(self);
-          }
         } else if(e.keyCode === 37) {
           //left arrow
           _previousStep.call(self);
@@ -163,10 +172,6 @@
    * @method _nextStep
    */
   function _nextStep() {
-    if (typeof (this._introBeforeChangeCallback) !== 'undefined') {
-      this._introBeforeChangeCallback.call(this, this._targetElement);
-    }
-
     if (typeof (this._currentStep) === 'undefined') {
       this._currentStep = 0;
     } else {
@@ -195,10 +200,6 @@
   function _previousStep() {
     if (this._currentStep === 0) {
       return false;
-    }
-
-    if (typeof (this._introBeforeChangeCallback) !== 'undefined') {
-      this._introBeforeChangeCallback.call(this, this._targetElement);
     }
 
     _showElement.call(this, this._introItems[--this._currentStep]);
@@ -247,6 +248,10 @@
     }
     //set the step to zero
     this._currentStep = undefined;
+    //check if any callback is defined
+    if (this._introExitCallback != undefined) {
+      this._introExitCallback.call(this);
+    }
   }
 
   /**
@@ -439,11 +444,6 @@
         if (self._introItems.length - 1 == self._currentStep && typeof (self._introCompleteCallback) === 'function') {
           self._introCompleteCallback.call(self);
         }
-
-        if (self._introItems.length - 1 != self._currentStep && typeof (self._introExitCallback) === 'function') {
-          self._introExitCallback.call(self);
-        }
-
         _exitIntro.call(self, self._targetElement);
       };
 
@@ -606,10 +606,6 @@
       if(self._options.exitOnOverlayClick == true) {
         _exitIntro.call(self, targetElm);
       }
-      //check if any callback is defined
-      if (self._introExitCallback != undefined) {
-        self._introExitCallback.call(self);
-      }
     };
 
     setTimeout(function() {
@@ -718,14 +714,6 @@
     },
     exit: function() {
       _exitIntro.call(this, this._targetElement);
-    },
-    onbeforechange: function(providedCallback) {
-      if (typeof (providedCallback) === 'function') {
-        this._introBeforeChangeCallback = providedCallback;
-      } else {
-        throw new Error('Provided callback for onbeforechange was not a function');
-      }
-      return this;
     },
     onchange: function(providedCallback) {
       if (typeof (providedCallback) === 'function') {
