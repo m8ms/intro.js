@@ -4,6 +4,8 @@
  * MIT licensed
  *
  * Copyright (C) 2013 usabli.ca - A weekend project by Afshin Mehrabani (@afshinmeh)
+ *
+ *
  */
 
 (function (root, factory) {
@@ -88,14 +90,15 @@
             var currentDiv = $('.'+currentClass).get(0);  // WARNING use of jQuery
         }
 
-
-        introItems.push({
-          element: currentDiv,
-          intro: currentElement.innerHTML,
-          step: cont,
-          position: currentElement.getAttribute("data-position")
-        });
-        cont++;
+        if(currentDiv){
+            introItems.push({
+              element: currentDiv,
+              intro: currentElement.innerHTML,
+              step: cont,
+              position: currentElement.getAttribute("data-position")
+            });
+            cont++;
+        }
       }
     }
 
@@ -187,7 +190,6 @@
       _exitIntro.call(this, this._targetElement);
       return;
     }
-
     _showElement.call(this, this._introItems[this._currentStep]);
   }
 
@@ -327,14 +329,14 @@
    * @param {Object} targetElement
    */
   function _showElement(targetElement) {
-
     if (typeof (this._introChangeCallback) !== 'undefined') {
         this._introChangeCallback.call(this, targetElement.element);
     }
     
     var self = this,
         oldHelperLayer = document.querySelector('.introjs-helperLayer'),
-        elementPosition = _getOffset(targetElement.element);
+        elementPosition = _getOffset(targetElement.element),
+        $targetElement = $(targetElement.element); //jQuery! (needed for ba-resize
 
     if(oldHelperLayer != null) {
       var oldHelperNumberLayer = oldHelperLayer.querySelector('.introjs-helperNumberLayer'),
@@ -455,6 +457,15 @@
       //set proper position
       _placeTooltip.call(self, targetElement.element, tooltipLayer, arrowLayer);
     }
+
+    //target div resize listener
+    //  USES jQuery + ba-resize (http://benalman.com/projects/jquery-resize-plugin/)
+    $targetElement.unbind('resize');
+    $targetElement.bind('resize', function(){
+        var currentHelperLayer = oldHelperLayer || helperLayer;
+        _setHelperLayerPosition.call(self, currentHelperLayer);
+    })
+
 
     if (this._currentStep == 0) {
       prevTooltipButton.className = 'introjs-button introjs-prevbutton introjs-disabled';
